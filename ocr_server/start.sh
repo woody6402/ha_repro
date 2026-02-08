@@ -17,6 +17,9 @@ if not src.exists():
 cfg = yaml.safe_load(src.read_text(encoding="utf-8")) or {}
 cfg.setdefault("mqtt", {})
 
+print("ADDON OPTIONS:", json.dumps(opts, indent=2))
+
+
 # Override mqtt from add-on options
 cfg["mqtt"]["host"] = opts.get("mqtt_host", cfg["mqtt"].get("host"))
 cfg["mqtt"]["port"] = int(opts.get("mqtt_port", cfg["mqtt"].get("port", 1883)))
