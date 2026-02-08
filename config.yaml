@@ -1,0 +1,25 @@
+name: "OCR Server"
+slug: "ocr_server"
+version: "0.1.2"
+description: "OCR server (config file stored in /config)"
+arch:
+  - amd64
+startup: services
+boot: auto
+
+ports:
+  5000/tcp: 5000
+ports_description:
+  5000/tcp: "OCR HTTP API"
+
+# Damit /config im Container verfügbar ist
+map:
+  - config:rw
+
+# Add-on UI: nur Pfad zur Konfigdatei
+options:
+  config_path: "/config/ocr_server/config.yaml"
+
+schema:
+  config_path: str
+
