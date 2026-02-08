@@ -1,7 +1,7 @@
 name: "OCR Server"
 slug: "ocr_server"
-version: "0.1.0"
-description: "OCR server (built from submodule) with YAML config in add-on options"
+version: "0.1.2"
+description: "OCR server (config file stored in /config)"
 arch:
   - amd64
 startup: services
@@ -12,25 +12,14 @@ ports:
 ports_description:
   5000/tcp: "OCR HTTP API"
 
+# Damit /config im Container verfügbar ist
+map:
+  - config:rw
+
+# Add-on UI: nur Pfad zur Konfigdatei
 options:
-  server_config: |
-    mqtt:
-      host: 192.168.0.90
-      port: 1883
-      topic_base: meters
-    watermeter:
-      d1:
-        model: dig-cont_0900_s3_q
-        predecimal:
-        - [209, 131, 33, 46]
-        - [255, 126, 36, 51]
-        - [303, 128, 41, 54]
-        - [356, 130, 36, 51]
-        - [404, 128, 36, 49]
-      t1:
-        model: tesseract
-        rects:
-        - [305, 188, 162, 30]
+  config_path: "/config/ocr_server/config.yaml"
 
 schema:
-  server_config: str
+  config_path: str
+
