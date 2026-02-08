@@ -1,34 +1,36 @@
 #!/usr/bin/env bash
 set -e
 
-OPTS="/data/options.json"
-
-# Default, falls options.json fehlt:
-CONFIG_PATH="/config/ocr_server/config.yaml"
-
-# Falls HA options gesetzt sind, überschreiben:
-if [ -f "$OPTS" ]; then
-  CONFIG_PATH=$(python3 - << "PY"
+python3 - << "PY"
 import json
 from pathlib import Path
-opts = json.loads(Path("/data/options.json").read_text())
-print(opts.get("config_path", "/config/ocr_server/config.yaml"))
-PY
+import yaml
+
+opts_path = Path("/data/options.json")
+opts = json.loads(opts_path.read_text()) if opts_path.exists() else {}
+
+config_path = opts.get("config_path", "/config/ocr_server/config.yaml")
+src = Path(config_path)
+if not src.exists():
+    raise SystemExit(f"ERROR: Config file not found: {src}")
+
+cfg = yaml.safe_load(src.read_text(encoding="utf-8")) or {}
+cfg.setdefault("mqtt", {})
+
+# Override mqtt from add-on options
+cfg["mqtt"]["host"] = opts.get("mqtt_host", cfg["mqtt"].get("host"))
+cfg["mqtt"]["port"] = int(opts.get("mqtt_port", cfg["mqtt"].get("port", 1883)))
+cfg["mqtt"]["username"] = opts.get("mqtt_username", cfg["mqtt"].get("username"))
+cfg["mqtt"]["password"] = opts.get("mqtt_password", cfg["mqtt"].get("password", ""))
+cfg["mqtt"]["topic_base"] = opts.get("mqtt_topic_base", cfg["mqtt"].get("topic_base"))
+
+target = Path("/app/config/config.yaml")
+target.parent.mkdir(parents=True, exist_ok=True)
+target.write_text(
+    yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True),
+    encoding="utf-8"
 )
-fi
-
-# Zielpfad (wie dein OCR-Server ihn erwartet)
-TARGET="/app/config/config.yaml"
-mkdir -p "$(dirname "$TARGET")"
-
-# Config rüberkopieren (fail fast, wenn sie fehlt)
-if [ ! -f "$CONFIG_PATH" ]; then
-  echo "ERROR: Config file not found: $CONFIG_PATH"
-  echo "Create it in Home Assistant under /config/ocr_server/config.yaml (or adjust config_path option)."
-  exit 1
-fi
-
-cp -f "$CONFIG_PATH" "$TARGET"
+PY
 
 exec python3 /app/app.py
 
