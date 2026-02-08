@@ -1,7 +1,7 @@
 # OCR Server – Home Assistant Add-on
 
 An OCR server packaged as a Home Assistant Add-on for image recognition (meters, displays, PV, etc.).  
-The server exposes an HTTP API, processes images (OCR / TFLite), and can optionally publish results via MQTT.
+The server exposes an HTTP API, processes images (OCR / TFLite or tesseract), and can optionally publish results via MQTT.
 
 This repository contains **the Home Assistant Add-on only**, not the core OCR logic itself.  
 The OCR logic lives in a separate repository and is included here as a Git submodule.
@@ -77,7 +77,7 @@ This file typically contains:
 ---
 
 ## Repository Structure
-
+```
 ha_repro/
 ├── repository.yaml
 └── ocr_server/
@@ -86,7 +86,7 @@ ha_repro/
     ├── start.sh
     └── src/
         └── ocr-server/    (OCR logic, submodule)
-
+```
 ---
 
 ## Configuration Flow
@@ -104,20 +104,28 @@ ha_repro/
 
 ---
 
-## Debugging
+## Quick Test
 
 Add-on logs may show the parsed options on startup.
 
-HTTP API test:
+```
+curl -s -X POST http://<HA-IP>:5000/segment -F "identifier=watermeter" -F "image=@t4.jpg"
+{"identifier":"watermeter","results":[{"id":"d1","value":"00016.0"},{"id":"a1","value":9.127448058121708},{"id":"a2","value":3.881748198574262},{"id":"a3","value":1.2311287412814798},{"id":"a4","value":3.345734090629815},{"id":"t1","value":"CH-MI001-10039"}]}
+```
 
+see also add-on log for receiving and handling the request. Use the t4.jpg from the ocr-server repo.
+
+HTTP API test:
 curl http://<HA-IP>:5000/
 
 ---
 
 ## Local Development
 
+```
 docker build -t ocr-addon-test ./ocr_server
 docker run --rm -p 5000:5000 -v ./local_config:/config:ro ocr-addon-test
+```
 
 ---
 
