@@ -16,21 +16,22 @@ RUN apt-get update && \
       libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Workdir
 WORKDIR /app
 
-# Bring in the OCR server code (submodule)
+# 1) Nur requirements zuerst kopieren (damit pip layer cached bleibt)
+COPY src/ocr-server/requirements.txt /app/requirements.txt
+
+# 2) Python deps installieren (in EINEM RUN für weniger Layer)
+RUN pip install --no-cache-dir tflite-runtime \
+ && pip install --no-cache-dir -r /app/requirements.txt
+
+# 3) Dann erst den restlichen Code kopieren (app.py Änderungen triggern nur diesen Layer)
 COPY src/ocr-server/ /app/
 
-# Python deps
-RUN pip install --no-cache-dir tflite-runtime && \
-    pip install --no-cache-dir -r /app/requirements.txt
-
-# Start wrapper: write HA options server_config into /app/config.yaml if present, then run app
+# Start wrapper
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-CMD ["/start.sh"]
-
 EXPOSE 5000
 CMD ["/start.sh"]
+
