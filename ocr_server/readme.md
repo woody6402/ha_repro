@@ -131,10 +131,11 @@ docker run --rm -p 5000:5000 -v ./local_config:/config:ro ocr-addon-test
 
 ## Development Status
 
-- Public repository
-- main branch: stable
-- dev branch: development / testing
-- Versions with -dev suffix are not intended for production use
+- HAOS add-on/app build
+- HAOS configuration to set mqtt and config.yaml path (for picture segments)
+- changes in ocr-server to add HA discovery for MQTT values
+- BEWARE: still under preparation
+  (complete testflow for example picture was up and running)
 
 ---
 
